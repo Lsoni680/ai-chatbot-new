@@ -5,7 +5,7 @@ import OpenAI from "openai";
 
 // 1️⃣ Initialize Express app
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // 2️⃣ Initialize OpenAI client
 import dotenv from "dotenv";
@@ -31,7 +31,7 @@ app.post("/chat", async (req, res) => {
   if (!message) return res.json({ reply: "No message received" });
 
   try {
-    const response = await client.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         { role: "system", content: "You are a helpful chatbot." },
