@@ -19,6 +19,7 @@ const openai = new OpenAI({
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(".")); // 👈 THIS LINE
 
 // ✅ ROOT ROUTE (VERY IMPORTANT)
 app.get("/", (req, res) => {

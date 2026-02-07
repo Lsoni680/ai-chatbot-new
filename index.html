@@ -1,43 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>AI Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    body { font-family: Arial; max-width: 600px; margin: 50px auto; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; }
-    #userInput { width: 80%; padding: 10px; }
-    #sendBtn { padding: 10px; }
-    .user { color: blue; margin: 5px 0; }
-    .bot { color: green; margin: 5px 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .chat-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .messages {
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .user {
+      background: #d1e7ff;
+      text-align: right;
+    }
+
+    .bot {
+      background: #e9e9e9;
+      text-align: left;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>AI Chatbot</h1>
-  <div id="chat"></div>
-  <input id="userInput" placeholder="Type your message...">
-  <button id="sendBtn">Send</button>
+
+  <div class="chat-container">
+    <h2>AI Chatbot 🤖</h2>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="input-area">
+      <input id="userInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
   <script>
-    const chatDiv = document.getElementById("chat");
-    const input = document.getElementById("userInput");
-    const btn = document.getElementById("sendBtn");
+    const API_URL = "https://ai-chatbot-new-zp3y.onrender.com/chat";
 
-    btn.onclick = async () => {
-      const msg = input.value;
-      if (!msg) return;
+    function addMessage(text, className) {
+      const messages = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = "message " + className;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
 
-      chatDiv.innerHTML += `<div class="user">You: ${msg}</div>`;
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage(message, "user");
       input.value = "";
 
-      const res = await fetch("http://localhost:3000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
-      const data = await res.json();
-      chatDiv.innerHTML += `<div class="bot">Bot: ${data.reply}</div>`;
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-    };
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+        addMessage(data.reply, "bot");
+      } catch (err) {
+        addMessage("Error connecting to server", "bot");
+      }
+    }
   </script>
+
 </body>
 </html>
