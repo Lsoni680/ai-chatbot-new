@@ -118,23 +118,39 @@
   const input = document.getElementById("userInput");
   const button = document.querySelector("button");
 
-  function addMessage(text, className, id = null) {
+  let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+
+  function saveHistory() {
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }
+
+  function addMessage(text, role, save = true) {
     const div = document.createElement("div");
-    div.className = "message " + className;
+    div.className = "message " + role;
     div.textContent = text;
-    if (id) div.id = id;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+
+    if (save) {
+      chatHistory.push({ role, text });
+      saveHistory();
+    }
+
     return div;
+  }
+
+  function loadHistory() {
+    chatHistory.forEach(msg => {
+      addMessage(msg.text, msg.role, false);
+    });
   }
 
   async function typeWriter(element, text) {
     element.textContent = "";
     const words = text.split(" ");
-    for (let i = 0; i < words.length; i++) {
-      element.textContent += words[i] + " ";
-      messages.scrollTop = messages.scrollHeight;
-      await new Promise(r => setTimeout(r, 60)); // typing speed
+    for (let word of words) {
+      element.textContent += word + " ";
+      await new Promise(r => setTimeout(r, 60));
     }
   }
 
@@ -147,7 +163,7 @@
     input.disabled = true;
     button.disabled = true;
 
-    const typingBubble = addMessage("Bot is typing...", "bot");
+    const typingBubble = addMessage("Bot is typing...", "bot", false);
 
     try {
       const res = await fetch(API_URL, {
@@ -157,20 +173,25 @@
       });
 
       const data = await res.json();
+      typingBubble.textContent = "";
       await typeWriter(typingBubble, data.reply);
 
+      chatHistory.push({ role: "bot", text: data.reply });
+      saveHistory();
+
     } catch (err) {
-      typingBubble.textContent = "⚠️ Error connecting to server";
+      typingBubble.textContent = "⚠️ Error";
     }
 
     input.disabled = false;
     button.disabled = false;
-    input.focus();
   }
 
   input.addEventListener("keypress", e => {
     if (e.key === "Enter") sendMessage();
   });
+
+  loadHistory();
 </script>
 
 </body>
