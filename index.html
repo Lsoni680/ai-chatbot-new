@@ -125,11 +125,17 @@
     if (id) div.id = id;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+    return div;
   }
 
-  function removeMessage(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
+  async function typeWriter(element, text) {
+    element.textContent = "";
+    const words = text.split(" ");
+    for (let i = 0; i < words.length; i++) {
+      element.textContent += words[i] + " ";
+      messages.scrollTop = messages.scrollHeight;
+      await new Promise(r => setTimeout(r, 60)); // typing speed
+    }
   }
 
   async function sendMessage() {
@@ -141,7 +147,7 @@
     input.disabled = true;
     button.disabled = true;
 
-    addMessage("Bot is typing...", "bot typing", "typing");
+    const typingBubble = addMessage("Bot is typing...", "bot");
 
     try {
       const res = await fetch(API_URL, {
@@ -151,12 +157,10 @@
       });
 
       const data = await res.json();
-      removeMessage("typing");
-      addMessage(data.reply, "bot");
+      await typeWriter(typingBubble, data.reply);
 
     } catch (err) {
-      removeMessage("typing");
-      addMessage("⚠️ Error connecting to server", "bot");
+      typingBubble.textContent = "⚠️ Error connecting to server";
     }
 
     input.disabled = false;
@@ -164,7 +168,7 @@
     input.focus();
   }
 
-  input.addEventListener("keypress", (e) => {
+  input.addEventListener("keypress", e => {
     if (e.key === "Enter") sendMessage();
   });
 </script>
