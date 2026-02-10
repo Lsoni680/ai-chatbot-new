@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Required for ES modules
+// ES module fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,31 +19,30 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Serve frontend correctly
+// ✅ Serve public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Root route (loads index.html)
+// ✅ Root route — VERY IMPORTANT
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Chat API
+// OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Chat API (POST ONLY)
 app.post("/chat", async (req, res) => {
   const { message } = req.body;
-  if (!message) {
-    return res.status(400).json({ reply: "Message missing" });
-  }
+  if (!message) return res.status(400).json({ reply: "Message missing" });
 
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         { role: "system", content: "You are a helpful chatbot." },
-        { role: "user", content: message }
+        { role: "user", content: message },
       ],
     });
 
@@ -54,7 +53,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
