@@ -35,21 +35,36 @@ const openai = new OpenAI({
 // Chat API (POST ONLY)
 app.post("/chat", async (req, res) => {
   const { message } = req.body;
-  if (!message) return res.status(400).json({ reply: "Message missing" });
+
+  if (!message) {
+    return res.status(400).json({ reply: "Message missing" });
+  }
 
   try {
-    const response = await openai.chat.completions.create({
+    const stream = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         { role: "system", content: "You are a helpful chatbot." },
-        { role: "user", content: message },
+        { role: "user", content: message }
       ],
+      stream: true,
     });
 
-    res.json({ reply: response.choices[0].message.content });
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Transfer-Encoding", "chunked");
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        res.write(content);
+      }
+    }
+
+    res.end();
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ reply: "OpenAI error" });
+    res.status(500).end("OpenAI error");
   }
 });
 

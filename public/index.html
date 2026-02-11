@@ -334,20 +334,42 @@ loadVoices();
         body: JSON.stringify({ message: text })
       });
 
-      const data = await res.json();
       typing.remove();
 
-      addMessage(data.reply, "bot");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
 
-      if (!isMuted && selectedVoice) {
-        const speech = new SpeechSynthesisUtterance(data.reply);
-        speech.voice = selectedVoice;
-        speech.rate = 1;
-        speech.pitch = 1.1;
-        speechSynthesis.speak(speech);
-      }
+      let botText = "";
 
-      speak(data.reply);
+      // Create empty bot bubble
+      const botDiv = document.createElement("div");
+      botDiv.className = "message bot";
+      messages.appendChild(botDiv);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        botText += chunk;
+        botDiv.textContent = botText;
+
+        messages.scrollTop = messages.scrollHeight;
+     }
+
+      // Save full message after streaming completes
+      history.push({ text: botText, role: "bot" });
+      saveHistory();
+
+     // Speak only once after full message arrives
+     if (!isMuted && selectedVoice) {
+       const speech = new SpeechSynthesisUtterance(botText);
+       speech.voice = selectedVoice;
+       speech.rate = 1;
+       speech.pitch = 1.1;
+       speechSynthesis.cancel();
+       speechSynthesis.speak(speech);
+     }
 
     } catch {
       typing.remove();
