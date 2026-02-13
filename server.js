@@ -17,6 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 // ES module fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const path = require("path");
 
 // Middleware
 app.use(cors());
