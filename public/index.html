@@ -191,6 +191,64 @@
   100% { transform: scale(1); }
 }
 
+/* ================= AUTH PAGE ================= */
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  background: var(--panel);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.auth-container input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.auth-container button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.auth-container .register-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.auth-container .login-btn {
+  background: #16a34a;
+  color: white;
+}
+
+.auth-container button:hover {
+  opacity: 0.9;
+}
+
+.auth-error {
+  color: #ef4444;
+  font-size: 14px;
+  text-align: center;
+}
+
   </style>
 </head>
 <body>
@@ -563,30 +621,16 @@ function logout() {
 
 </script>
 
-<div id="authScreen" style="
-  position:fixed;
-  inset:0;
-  background:#020617;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  gap:12px;
-  z-index:9999;
-">
+<div class="auth-container">
+  <h2>Login Required</h2>
 
-  <h2 style="color:white">Login Required</h2>
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
 
-  <input id="email" placeholder="Email"
-    style="padding:10px;width:220px;border-radius:8px;border:none;" />
+  <button class="register-btn" onclick="register()">Register</button>
+  <button class="login-btn" onclick="login()">Login</button>
 
-  <input id="password" type="password" placeholder="Password"
-    style="padding:10px;width:220px;border-radius:8px;border:none;" />
-
-  <button onclick="register()" style="width:220px">Register</button>
-  <button onclick="login()" style="width:220px;background:#16a34a">Login</button>
-
-  <p id="authMessage" style="color:#f87171;font-size:13px"></p>
+  <div id="error" class="auth-error"></div>
 </div>
 
 </body>
