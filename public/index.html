@@ -202,6 +202,7 @@
     <button class="header-btn export-btn" onclick="exportChat()">⬇ Export</button>
     <button class="header-btn clear-btn" onclick="clearChat()">🗑</button>
     <button class="header-btn" id="muteBtn" style="right:92px">🔊</button>
+    <button class="header-btn" style="left:140px" onclick="logout()">🚪</button>
   </header>
 
   <div class="messages" id="messages"></div>
@@ -216,6 +217,8 @@
 
 <script>
   const API_URL = "/chat";
+  let token = localStorage.getItem("token");
+  const authScreen = document.getElementById("authScreen");
   const messages = document.getElementById("messages");
   const input = document.getElementById("input");
   const button = document.getElementById("sendBtn");
@@ -238,8 +241,22 @@ function loadVoices() {
 speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
+async function loadHistoryFromServer() {
+  const res = await fetch("/history", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
 
-  /* ============================= */
+  const data = await res.json();
+
+  data.forEach(chat => {
+    addMessage(chat.message, "user", false);
+    addMessage(chat.reply, "bot", false);
+  });
+}
+
+/* ============================= */
   /* SETTINGS + STATE */
   /* ============================= */
 
@@ -251,12 +268,21 @@ loadVoices();
   /* INIT */
   /* ============================= */
 
+  if (!token) {
+  document.querySelector(".chat-container").style.display = "none";
+} else {
+  authScreen.style.display = "none";
+}
+
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
   }
 
   updateMuteIcon();
-  history.forEach(m => addMessage(m.text, m.role, false));
+  if (token) {
+  loadHistoryFromServer();
+}
+
 
   /* ============================= */
   /* UI FUNCTIONS */
@@ -330,9 +356,18 @@ loadVoices();
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+
         body: JSON.stringify({ message: text })
       });
+
+      if (!res.ok) {
+      throw new Error("Server error");
+   }
+
 
       typing.remove();
 
@@ -434,6 +469,48 @@ loadVoices();
     window.speechSynthesis.speak(utterance);
   }
 
+  async function register() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  document.getElementById("authMessage").textContent = data.message;
+}
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    token = data.token;
+    localStorage.setItem("token", token);
+
+    authScreen.style.display = "none";
+    document.querySelector(".chat-container").style.display = "flex";
+  } else {
+    document.getElementById("authMessage").textContent = data.message;
+  }
+}
+function logout() {
+  localStorage.removeItem("token");
+  token = null;
+  location.reload();
+}
+
   /* ============================= */
   /* SPEECH RECOGNITION */
   /* ============================= */
@@ -483,4 +560,35 @@ loadVoices();
 </script>
 
 </body>
+
+</script>
+
+<div id="authScreen" style="
+  position:fixed;
+  inset:0;
+  background:#020617;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  gap:12px;
+  z-index:9999;
+">
+
+  <h2 style="color:white">Login Required</h2>
+
+  <input id="email" placeholder="Email"
+    style="padding:10px;width:220px;border-radius:8px;border:none;" />
+
+  <input id="password" type="password" placeholder="Password"
+    style="padding:10px;width:220px;border-radius:8px;border:none;" />
+
+  <button onclick="register()" style="width:220px">Register</button>
+  <button onclick="login()" style="width:220px;background:#16a34a">Login</button>
+
+  <p id="authMessage" style="color:#f87171;font-size:13px"></p>
+</div>
+
+</body>
 </html>
+
