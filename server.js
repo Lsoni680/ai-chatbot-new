@@ -1,12 +1,11 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-import OpenAI from "openai";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import OpenAI from "openai";
 
 dotenv.config();
 
@@ -14,26 +13,39 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// ES module fix
+// Fix for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+//////////////////////////////////////////////////////
+// MIDDLEWARE
+//////////////////////////////////////////////////////
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Temporary in-memory storage
+//////////////////////////////////////////////////////
+// TEMP IN-MEMORY DATABASE (temporary only)
+//////////////////////////////////////////////////////
 const users = [];
 
-// Serve frontend
+//////////////////////////////////////////////////////
+// OPENAI SETUP
+//////////////////////////////////////////////////////
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+//////////////////////////////////////////////////////
+// SERVE FRONTEND
+//////////////////////////////////////////////////////
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// OpenAI setup
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+app.get("/test", (req, res) => {
+  res.send("Server works!");
 });
 
 //////////////////////////////////////////////////////
@@ -60,6 +72,8 @@ function authenticate(req, res, next) {
 // REGISTER
 //////////////////////////////////////////////////////
 app.post("/register", async (req, res) => {
+  console.log("BODY RECEIVED:", req.body); // Debug log
+
   const { email, password } = req.body;
 
   if (!email || !password)
@@ -104,7 +118,7 @@ app.post("/login", async (req, res) => {
 });
 
 //////////////////////////////////////////////////////
-// LOAD CHAT HISTORY (Your frontend needs this!)
+// LOAD CHAT HISTORY
 //////////////////////////////////////////////////////
 app.get("/history", authenticate, (req, res) => {
   const user = users.find(u => u.email === req.user.email);
@@ -145,7 +159,6 @@ app.post("/chat", authenticate, async (req, res) => {
       }
     }
 
-    // Save chat
     const user = users.find(u => u.email === req.user.email);
     if (user) {
       user.chats.push({ message, reply: fullReply });
@@ -160,7 +173,7 @@ app.post("/chat", authenticate, async (req, res) => {
 });
 
 //////////////////////////////////////////////////////
-// IMPORTANT FOR RENDER
+// START SERVER (Important for Render)
 //////////////////////////////////////////////////////
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on port ${PORT}`);
