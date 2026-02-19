@@ -358,24 +358,32 @@ async function forgotPassword() {
   const history = JSON.parse(localStorage.getItem("chat")) || [];
 
   /* ============================= */
-  /* INIT */
-  /* ============================= */
+/* INIT */
+/* ============================= */
+
+const chatContainer = document.querySelector(".chat-container");
+
+function init() {
+  token = localStorage.getItem("token");
 
   if (!token) {
-  document.querySelector(".chat-container").style.display = "none";
-  document.getElementById("authScreen").style.display = "flex";
-} else {
-  document.getElementById("authScreen").style.display = "none";
-}
+    chatContainer.style.display = "none";
+    authScreen.style.display = "flex";
+  } else {
+    chatContainer.style.display = "flex";
+    authScreen.style.display = "none";
+    loadHistoryFromServer();
+  }
 
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
   }
 
   updateMuteIcon();
-  if (token) {
-  loadHistoryFromServer();
 }
+
+init();
+
 
 
   /* ============================= */
