@@ -260,7 +260,7 @@
     <button class="header-btn export-btn" onclick="exportChat()">⬇ Export</button>
     <button class="header-btn clear-btn" onclick="clearChat()">🗑</button>
     <button class="header-btn" id="muteBtn" style="right:92px">🔊</button>
-    <button class="header-btn" style="left:140px" onclick="logout()">🚪</button>
+    <button class="header-btn" style="left:120px" onclick="logout()">🚪</button>
   </header>
 
   <div class="messages" id="messages"></div>
@@ -270,6 +270,21 @@
     <button id="micBtn" class="mic">🎤</button>
     <button id="sendBtn">Send</button>
   </footer>
+</div>
+
+<div class="auth-container" id="authScreen">
+  <h2>Login Required</h2>
+
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+
+  <button class="register-btn" onclick="register()">Register</button>
+  <button class="login-btn" onclick="login()">Login</button>
+  <button onclick="forgotPassword()" style="background:#f59e0b;color:white;">
+  Forgot Password
+</button>
+
+  <div id="authMessage" class="auth-error"></div>
 </div>
 
 
@@ -312,6 +327,26 @@ async function loadHistoryFromServer() {
     addMessage(chat.message, "user", false);
     addMessage(chat.reply, "bot", false);
   });
+}
+
+async function forgotPassword() {
+  const email = document.getElementById("email").value;
+  const newPassword = prompt("Enter your new password:");
+
+  if (!email || !newPassword) {
+    document.getElementById("authMessage").textContent =
+      "Email and new password required";
+    return;
+  }
+
+  const res = await fetch("/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, newPassword })
+  });
+
+  const data = await res.json();
+  document.getElementById("authMessage").textContent = data.message;
 }
 
 /* ============================= */
@@ -625,22 +660,6 @@ async function login() {
 }
 
 </script>
-
-</body>
-
-</script>
-
-<div class="auth-container" id="authScreen">
-  <h2>Login Required</h2>
-
-  <input type="email" id="email" placeholder="Email" />
-  <input type="password" id="password" placeholder="Password" />
-
-  <button class="register-btn" onclick="register()">Register</button>
-  <button class="login-btn" onclick="login()">Login</button>
-
-  <div id="authMessage" class="auth-error"></div>
-</div>
 
 </body>
 </html>

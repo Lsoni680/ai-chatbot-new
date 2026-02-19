@@ -136,6 +136,25 @@ app.post("/login", async (req, res) => {
 });
 
 //////////////////////////////////////////////////////
+// FORGOT PASSWORD (Simple Reset)
+//////////////////////////////////////////////////////
+app.post("/forgot-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword)
+    return res.status(400).json({ message: "Missing fields" });
+
+  const user = users.find(u => u.email === email);
+  if (!user)
+    return res.status(400).json({ message: "User not found" });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+
+  res.json({ message: "Password updated successfully" });
+});
+
+//////////////////////////////////////////////////////
 // LOAD CHAT HISTORY
 //////////////////////////////////////////////////////
 app.get("/history", authenticate, (req, res) => {
